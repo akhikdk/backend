@@ -1,0 +1,13 @@
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import Routes from './Router';
+
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    {/* test from clone */}
+   <Routes/>
+  </StrictMode>,
+);
+
