@@ -5,8 +5,8 @@ import Login from './pages/Login';
 import Details from './pages/Details';
 import Home from './pages/Home';
 import AddProduct from './pages/AddProduct';
-import Table from './pages/Table';
-import category from './pages/category';
+import Category from './pages/Category';
+import ProductDescriptionTable from './pages/ProductDescriptionTable'
 
 export default function AppRouter() {
   return (
@@ -15,9 +15,10 @@ export default function AppRouter() {
         <Route path="/" element={<Products />} />
         <Route path="/login" element={<Login />} />
         <Route path="/details/:id" element={<Details />} />
-        <Route path="home" element={<Home/>}/>
-        <Route path="addProduct" element={<AddProduct/>}/>
-        <Route path="table" element={<Table/>}/>
+        <Route path="/home" element={<Home/>}/>
+        <Route path="/addProduct" element={<AddProduct/>}/>
+        <Route path="/category" element={<Category/>}/>
+        <Route path="/ProductDescriptionTable" element={<ProductDescriptionTable/>}/>
       </Routes>
     </BrowserRouter>
   );
