@@ -1,0 +1,64 @@
+import React, { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+
+function ProductDetails() {
+  const { id } = useParams();
+
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const API_URL = `http://localhost:8000/api/products/${id}`;
+
+  // Fetch product details
+
+  const fetchProductDetails = async () => {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error("Failed to fetch product");
+
+      const data = await res.json();
+      setProduct(data);
+    } catch (error) {
+      console.error("Error fetching product details", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProductDetails();
+  }, [id]);
+
+  if (loading) return <div className='p-10 text-xl'>Loading...</div>;
+
+  if (!product)
+    return <div className='p-10 text-xl text-red-500'>Product not found</div>;
+
+  return (
+    <div className="w-full min-h-screen flex justify-center p-10 bg-gray-100">
+      <div className="bg-white shadow-lg rounded-lg p-6 w-[90%] md:w-[60%]">
+        <h1 className="text-3xl font-bold mb-4">{product.title}</h1>
+
+        <img
+          src={product.image}
+          alt={product.title}
+          className='w-60 h-60 object-contain mx-auto mb-4'
+        />
+
+        <p className="text-lg mb-2">
+          <strong>Price:</strong> {product.price}
+        </p>
+
+        <p className="text-lg mb-2">
+          <strong>Category:</strong> {product?.category?.title ?? "N/A"}
+        </p>
+
+        <p className="text-gray-700 mt-3 leading-relaxed">
+          {product.description || "No description available."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default ProductDetails;

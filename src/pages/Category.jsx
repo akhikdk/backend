@@ -34,7 +34,7 @@ function Category() {
     e.preventDefault();
     const { title, price, image, description } = form;
 
-    if (!title || !image ) {
+    if (!title || !image) {
       alert("Please fill all fields");
       return;
     }
@@ -51,7 +51,7 @@ function Category() {
       const data = await res.json();
 
       setProducts((prev) => [...prev, data.product]);
-      setForm({ title: "",  image: "",  });
+      setForm({ title: "", image: "" });
     } catch (error) {
       console.error(error);
       alert("Error adding product");
@@ -82,44 +82,45 @@ function Category() {
 
   return (
     <div className="w-full min-h-screen bg-gray-100 flex flex-col items-center py-10">
-      <h1 className="text-3xl md:text-4xl font-bold mb-6 text-gray-800">
+      <h1 className="text-3xl md:text-4xl font-bold mb-6 text-red-400">
         Category Manager
       </h1>
 
       {/* Add Product Form */}
       <form
         onSubmit={handleSubmit}
-        className="w-[90%] md:w-[70%] lg:w-[60%] bg-white shadow-lg rounded-lg p-6 mb-10"
+        className="w-[90%] md:w-[70%] lg:w-[60%] bg-white shadow-lg rounded-lg  p-6 mb-10"
       >
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+        <h2 className="text-2xl font-semibold text-red-700 mb-4">
           Add New Product Category
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 ">
           <input
             type="text"
             name="title"
             placeholder=" Category"
             value={form.title}
             onChange={handleChange}
-            className="border rounded-md px-4 py-4 focus:ring-2 focus:ring-indigo-400"
-          /> 
-          <br />
+            className="border rounded-md px-4 py-4 focus:ring-7 border-cyan-600 focus:ring-indigo-400 m -[50px]"
+          />
+
           <input
             type="text"
             name="image"
             placeholder="Image URL"
             value={form.image}
             onChange={handleChange}
-            className="border rounded-md px-4 py-4 focus:ring-7 focus:ring-indigo-400 m -[50px]"
+            className="border rounded-md px-4 py-4 focus:ring-7 border-cyan-600 focus:ring-indigo-400 m -[50px]"
           />
+
           <br />
         </div>
         <button
           type="submit"
           disabled={loading}
-          className="mt-5 bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition-colors disabled:bg-gray-400 flex justify-center "
+          className="mt-5 bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-sky-500 transition-colors disabled:bg-gray-400  "
         >
-          {loading ? "Adding..." : "Add Product"}
+          {loading ? "Adding..." : "Add Category"}
         </button>
       </form>
 
@@ -128,12 +129,10 @@ function Category() {
         <table className="w-full border-collapse">
           <thead className="bg-indigo-600 text-white">
             <tr>
-              <th className="px-4 py-3 text-left">No</th>
-              <th className="px-4 py-3 text-left">Image</th>
+              <th className="px-4 py-3 ">No</th>
+              <th className="px-4 py-3 ">Image</th>
               <th className="px-4 py-3 text-left">Name</th>
-              {/* <th className="px-4 py-3 text-left">Price</th>
-              <th className="px-4 py-3 text-left">Description</th>
-              <th className="px-4 py-3 text-center">Action</th> */}
+      
             </tr>
           </thead>
           <tbody>
@@ -156,9 +155,7 @@ function Category() {
                   <td className="px-4 py-3 font-medium text-gray-800 text-left">
                     {product.title}
                   </td>
-                  {/* <td className="px-4 py-3 font-medium text-green-600 text-left">
-                    ₹{product.price}
-                  </td> */}
+                
                   <td className="px-4 py-3 text-left">{product.description}</td>
                   <td className="px-4 py-3 text-center">
                     <button

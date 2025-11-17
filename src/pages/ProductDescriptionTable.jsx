@@ -3,13 +3,16 @@ import { TiDelete } from "react-icons/ti";
 
 function ProductDescriptionTable() {
   const API_URL = "http://localhost:8000/api/products";
+  const CATEGORY_API_URL = "http://localhost:8000/api/category";
 
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({
     title: "",
     price: "",
     image: "",
     description: "",
+    category: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -26,6 +29,19 @@ function ProductDescriptionTable() {
     }
   };
 
+  // Fetch all categories
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(CATEGORY_API_URL);
+      if (!res.ok) throw new Error("Failed to fetch categories");
+      const data = await res.json();
+      setCategories(data);
+    } catch (error) {
+      console.error(error);
+      alert("Error fetching categories");
+    }
+  };
+
   // Handle input changes
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -34,10 +50,10 @@ function ProductDescriptionTable() {
   // Add new product
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { title, price, image, description } = form;
+    const { title, price, image, description, category } = form;
 
-    if (!title || !price || !image || !description) {
-      alert("Please fill all fields");
+    if (!title || !price || !image || !description || !category) {
+      alert("Please fill all fields including category");
       return;
     }
 
@@ -53,7 +69,13 @@ function ProductDescriptionTable() {
       const data = await res.json();
 
       setProducts((prev) => [...prev, data.product]);
-      setForm({ title: "", price: "", image: "", description: "" });
+      setForm({
+        title: "",
+        price: "",
+        image: "",
+        description: "",
+        category: "",
+      });
     } catch (error) {
       console.error(error);
       alert("Error adding product");
@@ -80,6 +102,7 @@ function ProductDescriptionTable() {
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
   }, []);
 
   return (
@@ -96,7 +119,7 @@ function ProductDescriptionTable() {
         <h2 className="text-2xl font-semibold text-gray-700 mb-4">
           Add New Product
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <input
             type="text"
             name="title"
@@ -129,6 +152,25 @@ function ProductDescriptionTable() {
             onChange={handleChange}
             className="border rounded-md px-4 py-2 focus:ring-2 focus:ring-indigo-400"
           />
+
+          {/* Category Dropdown */}
+          <select
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            className="border rounded-md px-4 py-2 focus:ring-2 focus:ring-indigo-400"
+          >
+            <option value="">Select Category</option>
+            {categories.length > 0 ? (
+              categories.map((cat) => (
+                <option key={cat._id} value={cat._id}>
+                  {cat.title}
+                </option>
+              ))
+            ) : (
+              <option disabled>Loading categories...</option>
+            )}
+          </select>
         </div>
         <button
           type="submit"
@@ -147,6 +189,7 @@ function ProductDescriptionTable() {
               <th className="px-4 py-3 text-left">No</th>
               <th className="px-4 py-3 text-left">Image</th>
               <th className="px-4 py-3 text-left">Name</th>
+              <th className="px-4 py-3 text-left">Category</th>
               <th className="px-4 py-3 text-left">Price</th>
               <th className="px-4 py-3 text-left">Description</th>
               <th className="px-4 py-3 text-center">Action</th>
@@ -172,6 +215,9 @@ function ProductDescriptionTable() {
                   <td className="px-4 py-3 font-medium text-gray-800 text-left">
                     {product.title}
                   </td>
+                  <td className="px-4 py-3 text-left text-gray-700">
+                    {product?.category?.title?? "N/A"}
+                  </td>
                   <td className="px-4 py-3 font-medium text-green-600 text-left">
                     ₹{product.price}
                   </td>
@@ -190,7 +236,7 @@ function ProductDescriptionTable() {
             ) : (
               <tr>
                 <td
-                  colSpan="6"
+                  colSpan="7"
                   className="text-center py-6 text-gray-500 font-medium"
                 >
                   No products found

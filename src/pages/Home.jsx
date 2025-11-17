@@ -1,26 +1,55 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 function Home() {
+  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [catRes, prodRes] = await Promise.all([
+          fetch("http://localhost:8000/api/category"),
+          fetch("http://localhost:8000/api/products"),
+        ]);
+
+        const [catData, prodData] = await Promise.all([
+          catRes.json(),
+          prodRes.json(),
+        ]);
+
+        setCategories(catData);
+        setProducts(prodData);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   return (
-    <div className="w-full min-h-screen flex flex-col bg-gray-50 font-sans">
-      <nav className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex flex-wrap justify-between items-center px-8 py-4 shadow-lg">
-        <div className="w-auto">
-          <h1 className="text-3xl font-extrabold tracking-wide">WonderCart</h1>
-        </div>
+    <div className="w-full min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-white font-sans">
 
-        <div className="w-full md:w-[40%] my-3 md:my-0">
-          <input
-            type="text"
-            placeholder="Search for products..."
-            className="w-full md:w-[80%] p-2 rounded-md bg-white text-gray-800 placeholder-gray-500 focus:ring-2 focus:ring-blue-400 outline-none transition"
-          />
-        </div>
+      {/* 🌟 Navbar */}
+      <nav className="w-full bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white flex flex-col md:flex-row justify-between items-center px-8 py-4 shadow-lg">
+        <h1 className="text-3xl font-bold tracking-wide mb-2 md:mb-0">
+          <span className="text-yellow-300">Wonder</span>Cart
+        </h1>
 
-        <ul className="flex flex-wrap justify-evenly w-full md:w-[35%] font-medium gap-3 md:gap-0">
-          {["Home", "Cart", "Profile", "Products"].map((item) => (
+        <input
+          type="text"
+          placeholder="🔍 Search amazing products..."
+          className="w-full md:w-[35%] p-2 rounded-md text-black bg-white placeholder-gray-500 outline-none shadow-sm"
+        />
+
+        <ul className="flex gap-8 mt-3 md:mt-0 text-lg font-medium">
+          {["Home", "Products", "Cart", "Profile"].map((item) => (
             <li
               key={item}
-              className="cursor-pointer px-4 py-2 rounded-md hover:bg-white hover:text-blue-600 transition-all"
+              className="cursor-pointer hover:text-yellow-300 transition-all duration-200"
             >
               {item}
             </li>
@@ -28,63 +57,116 @@ function Home() {
         </ul>
       </nav>
 
-      <section className="flex flex-col md:flex-row justify-between items-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-20 px-8 md:px-16">
-        <div className="md:w-1/2 space-y-6">
-          <h2 className="text-5xl font-bold leading-tight">
-            Shop the Latest <span className="text-yellow-300">Trends</span>
+      {/* 💫 Hero Section */}
+      <section className="flex flex-col md:flex-row justify-between items-center py-16 px-8 md:px-16 bg-gradient-to-r from-blue-50 to-blue-100">
+        <div className="md:w-1/2 space-y-6 text-center md:text-left animate-fadeIn">
+          <h2 className="text-5xl font-extrabold text-gray-800 leading-snug">
+            Welcome to{" "}
+            <span className="text-blue-600 drop-shadow-lg">WonderCart</span>
           </h2>
-          <p className="text-lg text-gray-100 max-w-md">
-            Discover top-quality products, exclusive deals, and new arrivals —
-            all in one place. Elevate your shopping experience today.
+          <p className="text-gray-600 text-lg">
+            Discover high-quality products and exclusive deals — all in one
+            place!
           </p>
-          <button className="bg-white text-blue-600 font-semibold px-8 py-3 rounded-full shadow-md hover:shadow-xl hover:scale-105 transition">
-            Shop Now
+          <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
+            🛍️ Shop Now
           </button>
         </div>
 
-        <div className="md:w-1/2 mt-10 md:mt-0 flex justify-center">
-          <img
-            src="https://images.unsplash.com/photo-1606813902913-47c15f43c6b4?auto=format&fit=crop&w=900&q=80"
-            alt="Shopping"
-            className="rounded-xl shadow-2xl w-full md:w-3/4"
-          />
-        </div>
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png"
+          alt="Shopping illustration"
+          className="w-70 md:w-[450px] mt-8 md:mt-0 "
+        />
       </section>
 
+      {/* 🏷️ Categories Section */}
       <section className="py-16 px-8 md:px-16 bg-white">
-        <h3 className="text-3xl font-bold text-center mb-12 text-gray-800">
-          Featured <span className="text-blue-600">Products</span>
+        <h3 className="text-3xl font-bold text-center mb-10 text-black">
+          Browse by Categories
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
-          {[1, 2, 3, 4].map((item) => (
-            <div
-              key={item}
-              className="bg-gray-50 rounded-xl shadow-md hover:shadow-xl transform hover:-translate-y-2 transition-all p-5 border border-gray-100"
-            >
-              <img
-                src={`https://source.unsplash.com/random/300x300?product,${item}`}
-                alt={`Product ${item}`}
-                className="rounded-md mb-5 w-full h-56 object-cover"
-              />
-              <h4 className="text-lg font-semibold text-gray-700 mb-1">
-                Product {item}
-              </h4>
-              <p className="text-blue-600 font-medium mb-3">₹299</p>
-              <button className="w-full bg-blue-500 text-white font-medium px-4 py-2 rounded-md hover:bg-blue-600 hover:scale-[1.02] transition">
-                Add to Cart
-              </button>
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <p className="text-center text-black">Loading...</p>
+        ) : categories.length === 0 ? (
+          <p className="text-center text-gray-500">No categories available</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
+            {categories.map((cat) => (
+              <div
+                key={cat._id}
+                className="flex flex-col items-center  p-4 rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-105"
+              >
+                <img
+                  src={cat.image}
+                  alt={cat.title}
+                  className="w-24 h-24 object-cover rounded-full mb-3 border-2 border-blue-200"
+                />
+                <h4 className="text-md font-semibold text-gray-700">
+                  {cat.title}
+                </h4>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
-      <footer className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-center py-6 mt-auto">
-        <p className="text-sm md:text-base">
-          &copy; {new Date().getFullYear()}{" "}
-          <span className="font-semibold">WonderCart</span>. All rights
-          reserved.
+      {/* 🌟 Featured Products Section */}
+      <section className="py-16 px-8 md:px-16 bg-gray-50">
+        <h3 className="text-3xl font-bold text-center mb-10 text-gray-800">
+          Featured Products
+        </h3>
+
+        {loading ? (
+          <p className="text-center text-gray-500">Loading...</p>
+        ) : products.length === 0 ? (
+          <p className="text-center text-gray-500">No products available</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+            {products.map((item) => (
+              <div
+                key={item._id}
+                className="bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden group"
+              >
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="rounded-t-xl w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
+                />
+                <div className="p-5">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-1">
+                    {item.title}
+                  </h4>
+                  <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                    {item.description}
+                  </p>
+                  <p className="text-blue-600 font-semibold text-lg">
+                    ₹{item.price}
+                  </p>
+                  <p className="text-blue-600 font-semibold text-lg">
+                  {item?.category?.title??"no category"}
+                  </p>
+                  <button className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-md transition-all duration-300">
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* 🧭 Footer */}
+      <footer className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 text-white text-center py-6 mt-auto">
+        <p className="text-sm">
+          © {new Date().getFullYear()} <b>WonderCart</b>. All rights reserved.
         </p>
+        <div className="flex justify-center gap-5 mt-3 text-lg">
+          <i className="fa-brands fa-facebook hover:text-yellow-300 transition"></i>
+          <i className="fa-brands fa-instagram hover:text-yellow-300 transition"></i>
+          <i className="fa-brands fa-twitter hover:text-yellow-300 transition"></i>
+        </div>
       </footer>
     </div>
   );

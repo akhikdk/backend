@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import AddProduct from './pages/AddProduct';
 import Category from './pages/Category';
 import ProductDescriptionTable from './pages/ProductDescriptionTable'
+import ProductDetails from './pages/ProductDetails';
 
 export default function AppRouter() {
   return (
@@ -19,6 +20,7 @@ export default function AppRouter() {
         <Route path="/addProduct" element={<AddProduct/>}/>
         <Route path="/category" element={<Category/>}/>
         <Route path="/ProductDescriptionTable" element={<ProductDescriptionTable/>}/>
+        <Route path="/Productdetails" element={<ProductDetails/>}/>
       </Routes>
     </BrowserRouter>
   );
