@@ -1,188 +1,217 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import Navbar from "../component/Navbar";
 
 function Home() {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [catLoading, setCatLoading] = useState(true);
+  const [prodLoading, setProdLoading] = useState(true);
+  const [catError, setCatError] = useState("");
+  const [prodError, setProdError] = useState("");
+
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const abortController = new AbortController();
 
-    const fetchData = async () => {
+    const fetchCategories = async () => {
       try {
-        const [catRes, prodRes] = await Promise.all([
-          fetch("http://localhost:8000/api/category", { signal: abortController.signal }),
-          fetch("http://localhost:8000/api/products", { signal: abortController.signal }),
-        ]);
-
-        if (!catRes.ok || !prodRes.ok) throw new Error("Failed to fetch data");
-
-        const [catData, prodData] = await Promise.all([catRes.json(), prodRes.json()]);
-        setCategories(catData);
-        setProducts(prodData);
+        const res = await fetch("http://localhost:8000/api/category", {
+          signal: abortController.signal,
+        });
+        if (!res.ok) throw new Error("Failed to fetch categories");
+        const data = await res.json();
+        setCategories(data);
       } catch (err) {
-        if (!abortController.signal.aborted) setError("Something went wrong! Please try again later.");
+        if (!abortController.signal.aborted)
+          setCatError("Failed to load categories");
+        console.error(err);
       } finally {
-        setLoading(false);
+        setCatLoading(false);
       }
     };
 
-    fetchData();
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/api/products", {
+          signal: abortController.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to fetch products");
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        if (!abortController.signal.aborted)
+          setProdError("Failed to load products");
+        console.error(err);
+      } finally {
+        setProdLoading(false);
+      }
+    };
+
+    fetchCategories();
+    fetchProducts();
+
     return () => abortController.abort();
-  }, []);
+  }, [token]);
+
+  if (!token) return <Navigate to="/login" />;
 
   return (
     <div className="w-full min-h-screen flex flex-col font-sans bg-gradient-to-b from-gray-100 via-white to-gray-50">
-
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative flex flex-col md:flex-row items-center justify-between py-32 px-8 md:px-16 overflow-hidden">
-        <div className="md:w-1/2 space-y-6 z-20">
-          <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradientShift">
-            Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500">WonderCart</span>
-          </h2>
-          <p className="text-gray-700 text-lg md:text-xl animate-fadeIn delay-200">
-            Discover high-quality products and exclusive deals — all in one place!
-          </p>
-          <Link to="/products">
-            <button className="mt-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold px-10 py-4 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105 animate-fadeIn delay-400">
-              🛍️ Shop Now
-            </button>
-          </Link>
-        </div>
-
-        <div className="md:w-1/2 relative">
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png"
-            alt="Shopping illustration"
-            className="w-full max-w-lg mx-auto transform hover:scale-110 transition-transform duration-1000 animate-float"
-          />
-          <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-purple-300 rounded-full opacity-30 blur-3xl animate-blob"></div>
-          <div className="absolute -top-24 -left-16 w-72 h-72 bg-pink-300 rounded-full opacity-20 blur-3xl animate-blob animation-delay-2000"></div>
-        </div>
-      </section>
-
-      {/* Categories Section */}
-      <section className="py-20 px-8 md:px-16">
-        <h3 className="text-3xl md:text-4xl font-bold text-center mb-16 text-gray-900 animate-fadeIn">
-          Browse by Categories
-        </h3>
-
-        {loading ? (
-          <p className="text-center text-gray-700">Loading categories...</p>
-        ) : error ? (
-          <p className="text-center text-red-500">{error}</p>
-        ) : categories.length === 0 ? (
-          <p className="text-center text-gray-500">No categories available</p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
-            {categories.map((cat) => (
-              <Link
-                key={cat._id}
-                to={`/ProductDetails/${cat._id}`}
-                className="flex flex-col items-center p-5 rounded-3xl bg-white/70 backdrop-blur-lg shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-fadeIn"
-              >
-                <img
-                  src={cat.image}
-                  alt={cat.title}
-                  className="w-24 h-24 object-cover rounded-full mb-3 border-4 border-white shadow-lg"
-                />
-                <h4 className="text-md font-semibold text-gray-900">{cat.title}</h4>
-              </Link>
-            ))}
+      <div className="mt-20">
+        {/* HERO SECTION */}
+        <section className="relative flex flex-col md:flex-row items-center justify-between py-20 px-6 md:px-14 text-center md:text-left gap-10">
+          <div className="w-full md:w-1/2 space-y-5 z-20">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text animate-gradientShift leading-tight">
+              Welcome to{" "}
+              <span className="bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 bg-clip-text text-transparent">
+                WonderCart
+              </span>
+            </h2>
+            <p className="text-gray-700 text-lg md:text-xl animate-fadeIn delay-200">
+              Discover high-quality products and exclusive deals — all in one
+              place!
+            </p>
+            <Link to="/products">
+              <button className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold px-9 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105 animate-fadeIn delay-400">
+                🛍️ Shop Now
+              </button>
+            </Link>
           </div>
-        )}
-      </section>
 
-      {/* Products Section */}
-      <section className="py-20 px-8 md:px-16 bg-gradient-to-b from-white to-gray-50">
-        <h3 className="text-3xl md:text-4xl font-bold text-center mb-16 text-gray-900 animate-fadeIn">
-          Featured Products
-        </h3>
+          <div className="w-full md:w-1/2 relative flex justify-center">
+            <img
+              src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png"
+              alt="Shopping illustration"
+              className="w-64 sm:w-72 md:w-96 transform hover:scale-110 transition-transform duration-1000 animate-float"
+            />
+            <div className="absolute -bottom-16 -right-10 w-40 h-40 sm:w-56 sm:h-56 bg-purple-300 rounded-full opacity-30 blur-3xl animate-blob"></div>
+            <div className="absolute -top-20 -left-14 w-52 h-52 sm:w-64 sm:h-64 bg-pink-300 rounded-full opacity-20 blur-3xl animate-blob animation-delay-2000"></div>
+          </div>
+        </section>
 
-        {loading ? (
-          <p className="text-center text-gray-500">Loading products...</p>
-        ) : products.length === 0 ? (
-          <p className="text-center text-gray-500">No products available</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
-            {products.map((item) => (
-              <div
-                key={item._id}
-                className="relative bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 overflow-hidden group animate-fadeIn"
-              >
-                <Link to={`/ProductDetails/${item._id}`}>
+        {/* CATEGORIES */}
+        <section className="py-16 px-6 md:px-14">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900">
+            Browse Categories
+          </h3>
+
+          {catLoading ? (
+            <p className="text-center text-gray-700">Loading categories...</p>
+          ) : catError ? (
+            <p className="text-center text-red-500">{catError}</p>
+          ) : categories.length === 0 ? (
+            <p className="text-center text-gray-500">No categories available</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 sm:gap-8">
+              {categories.map((cat) => (
+                <Link
+                  key={cat._id}
+                  to={`/ProductDetails/${cat._id}`}
+                  className="flex flex-col items-center p-4 rounded-2xl hover:scale-105 transition-transform duration-300"
+                >
                   <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-700"
-                    loading="lazy"
+                    src={cat.image}
+                    alt={cat.title}
+                    className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full mb-3 border-4"
                   />
+                  <h4 className="text-sm sm:text-md font-semibold text-gray-900 text-center">
+                    {cat.title}
+                  </h4>
                 </Link>
-                <div className="p-6 space-y-2">
-                  <h4 className="text-lg font-bold text-gray-900">{item.title}</h4>
-                  <p className="text-gray-600 text-sm line-clamp-2">{item.description}</p>
-                  <p className="text-indigo-600 font-bold text-xl">₹{item.price}</p>
-                  <p className="text-gray-500 text-sm">{item?.category?.title ?? "No category"}</p>
-                  <button className="w-full mt-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold px-4 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1">
-                    Add to Cart
-                  </button>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* PRODUCTS */}
+        <section className="py-16 px-6 md:px-14 bg-gradient-to-b from-white to-gray-50">
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-12 text-gray-900">
+            Featured Products
+          </h3>
+
+          {prodLoading ? (
+            <p className="text-center text-gray-500">Loading products...</p>
+          ) : prodError ? (
+            <p className="text-center text-red-500">{prodError}</p>
+          ) : products.length === 0 ? (
+            <p className="text-center text-gray-500">No products available</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 sm:gap-10">
+              {products.map((item) => (
+                <div
+                  key={item._id}
+                  className="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 overflow-hidden group"
+                >
+                  <Link to={`/ProductDetails/${item._id}`}>
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-56 sm:h-64 object-cover group-hover:scale-110 transition-transform duration-700"
+                    />
+                  </Link>
+
+                  <div className="p-5 space-y-2">
+                    <h4 className="text-lg font-bold text-gray-900">
+                      {item.title}
+                    </h4>
+                    <p className="text-gray-600 text-sm line-clamp-2">
+                      {item.description}
+                    </p>
+                    <p className="text-indigo-600 font-bold text-xl">
+                      ₹{item.price}
+                    </p>
+                    <p className="text-gray-500 text-sm">
+                      {item?.category?.title ?? "No category"}
+                    </p>
+
+                    <Link to={`/singleproduct/${item._id}`}>
+                      <button className="w-full mt-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all">
+                        View
+                      </button>
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* FOOTER */}
+        <footer className="bg-gradient-to-r from-purple-700 via-pink-600 to-indigo-600 text-white text-center py-8 mt-auto relative overflow-hidden">
+          <div className="absolute inset-0 opacity-20 animate-blob bg-white/20 blur-3xl"></div>
+          <p className="relative text-sm">
+            © {new Date().getFullYear()} <b>WonderCart</b>. All rights reserved.
+          </p>
+          <div className="relative flex justify-center gap-6 mt-4 text-xl">
+            <i className="fa-brands fa-facebook hover:text-yellow-300"></i>
+            <i className="fa-brands fa-instagram hover:text-yellow-300"></i>
+            <i className="fa-brands fa-twitter hover:text-yellow-300"></i>
           </div>
-        )}
-      </section>
+        </footer>
+      </div>
 
-      {/* Footer */}
-      <footer className="bg-gradient-to-r from-purple-700 via-pink-600 to-indigo-600 text-white text-center py-8 mt-auto relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20 animate-blob bg-white/20 blur-3xl"></div>
-        <p className="relative text-sm">© {new Date().getFullYear()} <b>WonderCart</b>. All rights reserved.</p>
-        <div className="relative flex justify-center gap-6 mt-4 text-xl">
-          <i className="fa-brands fa-facebook hover:text-yellow-300 transition-transform transform hover:scale-110"></i>
-          <i className="fa-brands fa-instagram hover:text-yellow-300 transition-transform transform hover:scale-110"></i>
-          <i className="fa-brands fa-twitter hover:text-yellow-300 transition-transform transform hover:scale-110"></i>
-        </div>
-      </footer>
-
-      {/* Tailwind Animations */}
+      {/* ANIMATIONS */}
       <style>
         {`
-          @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-          .animate-gradientShift {
-            background-size: 200% 200%;
-            animation: gradientShift 15s ease infinite;
-          }
+          @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+          .animate-gradientShift { background-size: 200% 200%; animation: gradientShift 15s ease infinite; }
 
-          @keyframes fadeIn {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
-          }
-          .animate-fadeIn {
-            animation: fadeIn 1s ease forwards;
-          }
+          @keyframes fadeIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+          .animate-fadeIn { animation: fadeIn 1s ease forwards; }
           .delay-200 { animation-delay: 0.2s; }
           .delay-400 { animation-delay: 0.4s; }
 
-          @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-          }
+          @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
           .animate-float { animation: float 6s ease-in-out infinite; }
 
-          @keyframes blob {
-            0%, 100% { transform: translate(0,0) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-          }
+          @keyframes blob { 0%, 100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } }
           .animate-blob { animation: blob 20s infinite; }
           .animation-delay-2000 { animation-delay: 2s; }
         `}

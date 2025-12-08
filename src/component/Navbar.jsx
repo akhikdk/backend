@@ -1,54 +1,109 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const menuItems = [
+    { name: "Home", path: "/Home" },
+    { name: "Cart", path: "/cart" },
+    { name: "Products", path: "/" },
+    { name: "Login", path: "/login" },
+    { name: "Signup", path: "/signup" },
+  ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+    setIsOpen(false); // close menu on logout
+  };
+
   return (
-    <div className="w-full bg-blue-400 text-white flex justify-between items-center px-8 py-4">
+    <nav className="
+      w-full backdrop-blur-lg bg-gradient-to-r from-blue-500/70 to-indigo-500/70
+      text-white shadow-xl px-6 py-4 md:px-10
+      flex flex-col md:flex-row md:justify-between md:items-center
+      border-b border-white/20
+    ">
+      {/* Logo + Toggle */}
+      <div className="flex justify-between items-center w-full md:w-auto">
+        <Link to="/" className="text-2xl font-extrabold tracking-wide drop-shadow-lg">
+          Wonder<span className="text-yellow-300">Cart</span>
+        </Link>
 
-      {/* Logo */}
-      <div className="w-[20%]">
-        <h1 className="text-xl font-bold">WonderCart</h1>
+        <button
+          aria-label="Toggle menu"
+          className="text-white md:hidden text-3xl transition-transform hover:scale-110"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? "×" : "☰"}
+        </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="w-[40%]">
-        <input
-          type="text"
-          placeholder="Search products"
-          className="rounded-md w-[75%] p-2 bg-white text-black outline-none"
-        />
-      </div>
+      {/* Menu */}
+      <div className={`
+        ${isOpen ? "flex" : "hidden"}
+        flex-col md:flex md:flex-row md:items-center 
+        md:space-x-8 w-full md:w-auto mt-4 md:mt-0
+      `}>
+        {/* Search Bar */}
+        <div className="relative w-full md:w-72 mb-4 md:mb-0">
+          <input
+            type="text"
+            placeholder="Search premium products..."
+            className="
+              w-full px-4 py-2 rounded-xl 
+              bg-white/20 text-white placeholder-white/70 
+              shadow-inner border border-white/30 
+              focus:outline-none focus:ring-2 focus:ring-yellow-300 
+              transition-all
+            "
+          />
+          <span className="absolute right-3 top-2.5 text-white/70 text-lg">🔍</span>
+        </div>
 
-      {/* Navigation Links */}
-      <div className="w-[40%]">
-        <ul className="flex justify-evenly font-medium">
-          <li>
-            <Link to="/" className="cursor-pointer hover:bg-black px-2 py-1 rounded">
-              Home
-            </Link>
-          </li>
+        {/* Navigation Links + Logout */}
+        <ul className="flex flex-col md:flex-row md:space-x-6 text-lg font-medium w-full md:w-auto">
+          {menuItems.map((item) => {
+            const isLogin = item.name.toLowerCase() === "login";
+            const isSignup = item.name.toLowerCase() === "signup";
 
-          <li>
-            <Link to="/cart" className="cursor-pointer hover:bg-black px-2 py-1 rounded">
-              Cart
-            </Link>
-          </li>
+            return (
+              <li key={item.name} className="mb-2 md:mb-0">
+                <Link
+                  to={item.path}
+                  onClick={() => setIsOpen(false)}
+                  className={`
+                    block px-4 py-2 rounded-lg transition-all duration-300 backdrop-blur-md
+                    ${isLogin || isSignup
+                      ? "bg-gradient-to-r from-yellow-300 to-yellow-500 text-black font-semibold shadow-lg hover:opacity-90"
+                      : "text-white hover:bg-white/20 hover:shadow-lg"
+                    }
+                  `}
+                >
+                  {item.name}
+                </Link>
+              </li>
+            );
+          })}
 
+          {/* Logout button inside menu */}
           <li>
-            <Link to="/profile" className="cursor-pointer hover:bg-black px-2 py-1 rounded">
-              Profile
-            </Link>
-          </li>
-
-          <li>
-            <Link to="/products" className="cursor-pointer hover:bg-black px-2 py-1 rounded">
-              Products
-            </Link>
+            <button
+              onClick={handleLogout}
+              className="
+                w-full md:w-auto block px-4 py-2 rounded-lg 
+                bg-red-500 hover:bg-red-600 text-white font-semibold 
+                transition-all
+              "
+            >
+              Logout
+            </button>
           </li>
         </ul>
       </div>
-
-    </div>
+    </nav>
   );
 }
 

@@ -17,7 +17,19 @@ function ProductDetails() {
 
     const fetchProducts = async () => {
       try {
-        const res = await fetch(`http://localhost:8000/api/products/category/${id}`);
+        const token = localStorage.getItem("token");
+
+        const res = await fetch(
+          `http://localhost:8000/api/products/category/${id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
         if (!res.ok) throw new Error("Failed to fetch products");
 
         const data = await res.json();
@@ -39,12 +51,14 @@ function ProductDetails() {
         Loading...
       </div>
     );
+
   if (error)
     return (
       <div className="p-10 text-xl text-red-500 flex justify-center items-center min-h-screen">
         {error}
       </div>
     );
+
   if (products.length === 0)
     return (
       <div className="p-10 text-xl text-gray-500 flex justify-center items-center min-h-screen">
@@ -70,7 +84,6 @@ function ProductDetails() {
             >
               <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-transform duration-500 hover:scale-105 hover:-translate-y-3">
                 
-                {/* Image with cinematic hover effect */}
                 <div className="relative h-80 bg-gray-50 flex items-center justify-center overflow-hidden">
                   <img
                     src={p.image}
@@ -80,7 +93,6 @@ function ProductDetails() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 </div>
 
-                {/* Product Details */}
                 <div className="p-6 flex flex-col flex-1">
                   <h2 className="text-2xl font-bold text-gray-900 mb-2 truncate">
                     {p.title}
@@ -98,7 +110,6 @@ function ProductDetails() {
                   </div>
                 </div>
 
-                {/* Floating glow effect */}
                 <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-400 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-30 blur-2xl transition-opacity duration-500 pointer-events-none"></div>
               </div>
             </Link>

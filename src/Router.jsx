@@ -9,6 +9,11 @@ import Category from "./pages/Category";
 import ProductDescriptionTable from "./pages/ProductDescriptionTable";
 import ProductDetails from "./pages/ProductDetails";
 import SingleProduct from "./pages/SingleProduct";
+import Signup from "./pages/signup";
+import AddAddress from "./pages/AddAddress";
+import Cart from "./pages/Cart";
+import ProfileCreation from "./pages/ProfileCreation";
+import Proceed from "./pages/proceed";
 
 export default function AppRouter() {
   return (
@@ -40,6 +45,13 @@ export default function AppRouter() {
 
         {/* Single product page */}
         <Route path="/singleproduct/:id" element={<SingleProduct />} />
+
+        <Route path="/Signup" element={<Signup/>}/>
+
+        <Route path="/AddAddress" element={<AddAddress/>}/>
+        <Route path="/Cart" element={<Cart/>}/>
+        <Route path="/ProfileCreation" element={<ProfileCreation/>}/>
+        <Route path="/Proceed"element={<Proceed/>}/>
       </Routes>
     </BrowserRouter>
   );
