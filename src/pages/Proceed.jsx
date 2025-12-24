@@ -1,94 +1,126 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import useCartStore from "../CartStore";
 
 function Proceed() {
-  const [order, setOrder] = useState(null);
   const navigate = useNavigate();
+  const { cartItems, clearCart, getTotal } = useCartStore();
+  const [loading, setLoading] = useState(false);
 
+  // Redirect if cart is empty
   useEffect(() => {
-    const storedOrder = JSON.parse(localStorage.getItem("orderSummary"));
-    if (!storedOrder) {
-      navigate("/cart");
-    } else {
-      setOrder(storedOrder);
+    if (!cartItems || cartItems.length === 0) {
+      navigate("/", { replace: true });
     }
-  }, [navigate]);
+  }, [cartItems, navigate]);
 
-  const handlePlaceOrder = () => {
-    alert("Order placed successfully!");
-    localStorage.removeItem("cart");
-    localStorage.removeItem("orderSummary");
-    navigate("/");
+  if (!cartItems || cartItems.length === 0) return null;
+
+  // ---------------------------
+  // Price calculations (memoized)
+  // ---------------------------
+  const { subtotal, gst, deliveryFee, total } = useMemo(() => {
+    const sub = getTotal();
+    const tax = Math.round(sub * 0.18);
+    const delivery = 50;
+    return {
+      subtotal: sub,
+      gst: tax,
+      deliveryFee: delivery,
+      total: sub + tax + delivery
+    };
+  }, [cartItems, getTotal]);
+
+  // ---------------------------
+  // Handle Order
+  // ---------------------------
+  const handlePlaceOrder = async () => {
+    setLoading(true);
+    try {
+      if (!cartItems || cartItems.length === 0) {
+        throw new Error("Cart is empty");
+      }
+
+      const orderPayload = {
+        customer: "John Doe",       // replace with actual customer info if available
+        orderId: Date.now(),
+        status: "pending",
+        items: cartItems.map(item => ({
+          productId: item.id,
+          name: item.title,
+          qty: Number(item.qty),
+          price: Number(item.price)
+        }))
+      };
+
+      // Backend calculates total itself, so no need to send subtotal/gst/delivery
+      const response = await fetch("http://localhost:8000/api/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload)
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.message || "Failed to place order");
+      }
+
+      await response.json();
+      alert("Order placed successfully!");
+      clearCart();
+      navigate("/", { replace: true });
+
+    } catch (error) {
+      console.error("Order Error:", error);
+      alert("Error placing order: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!order) return null;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-purple-900 flex items-center justify-center p-10">
-      <div className="relative max-w-4xl w-full p-10 rounded-3xl bg-black/40 backdrop-blur-3xl border border-white/10 shadow-[0_0_60px_rgba(255,215,0,0.2)]">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-purple-900 flex items-center justify-center p-6">
+      <div className="w-full max-w-5xl p-8 rounded-3xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-lg">
 
-        {/* GOLD GLOW TOP BAR */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1/3 h-1 rounded-full bg-gradient-to-r from-yellow-500 to-yellow-300 shadow-[0_0_30px_rgba(255,215,0,0.8)]"></div>
-
-        <h1 className="text-center text-5xl font-extrabold tracking-wide bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-200 text-transparent bg-clip-text drop-shadow-lg">
+        <h1 className="text-center text-4xl md:text-5xl font-extrabold text-yellow-300 mb-8">
           Order Summary
         </h1>
 
-        {/* ITEMS */}
-        <div className="mt-10 flex flex-col gap-6">
-          {order.items.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center gap-6 bg-white/10 border border-white/10 rounded-2xl p-5 shadow-xl backdrop-blur-xl hover:scale-[1.02] transition-all duration-300"
-            >
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-20 h-20 object-contain rounded-xl bg-black/20 p-2 border border-white/10"
-              />
+        {/* Order Items */}
+        <div className="space-y-6">
+          <div className="p-4 bg-gray-800 rounded-2xl border border-gray-700 space-y-3">
+            <h3 className="text-lg font-semibold text-yellow-300">Your Order</h3>
 
-              <div className="flex-1">
-                <p className="text-xl font-semibold text-white">{item.title}</p>
-                <p className="text-gray-300 text-sm mt-1">
-                  Qty: {item.quantity || 1} | ₹{item.price} each
-                </p>
+            {cartItems.map(item => (
+              <div key={item.id} className="flex items-center gap-4 p-3 bg-gray-700 rounded-xl">
+                {item.image && <img src={item.image} alt={item.title} className="w-12 h-12 object-contain rounded" />}
+                <div className="flex-1 text-gray-200">
+                  <p className="font-semibold">{item.title}</p>
+                  <p className="text-gray-400 text-sm">Qty: {item.qty} | ₹{item.price} each</p>
+                </div>
+                <p className="text-yellow-300 font-bold">₹{item.price * item.qty}</p>
               </div>
-
-              <p className="text-yellow-300 font-bold text-xl">
-                ₹{Number(item.price) * (item.quantity || 1)}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* PRICE SECTION */}
-        <div className="mt-10 bg-white/10 border border-white/10 rounded-2xl p-6 backdrop-blur-xl shadow-inner">
-          <div className="flex justify-between text-gray-300 text-lg mb-2">
-            <span>Subtotal</span>
-            <span>₹{order.subtotal}</span>
-          </div>
-          <div className="flex justify-between text-gray-300 text-lg mb-2">
-            <span>GST (18%)</span>
-            <span>₹{order.gst}</span>
-          </div>
-          <div className="flex justify-between text-gray-300 text-lg mb-4">
-            <span>Delivery Fee</span>
-            <span>₹{order.deliveryFee}</span>
-          </div>
-
-          <div className="flex justify-between text-3xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-200 text-transparent bg-clip-text drop-shadow-xl pt-3">
-            <span>Total</span>
-            <span>₹{order.total}</span>
+            ))}
           </div>
         </div>
 
-        {/* BUTTON */}
+        {/* Totals */}
+        <div className="mt-6 p-6 bg-gray-800 rounded-2xl border border-gray-700">
+          <div className="flex justify-between text-gray-300 mb-2"><span>Subtotal</span><span>₹{subtotal}</span></div>
+          <div className="flex justify-between text-gray-300 mb-2"><span>GST (18%)</span><span>₹{gst}</span></div>
+          <div className="flex justify-between text-gray-300 mb-4"><span>Delivery Fee</span><span>₹{deliveryFee}</span></div>
+          <div className="flex justify-between text-yellow-300 text-2xl font-bold"><span>Total</span><span>₹{total}</span></div>
+        </div>
+
         <button
           onClick={handlePlaceOrder}
-          className="mt-8 w-full py-4 rounded-2xl bg-gradient-to-r from-yellow-500 to-yellow-300 text-black font-extrabold text-xl shadow-[0_0_30px_rgba(255,215,0,0.6)] hover:shadow-[0_0_40px_rgba(255,215,0,0.9)] transition-all duration-300 hover:scale-[1.03]"
+          disabled={loading}
+          className={`mt-6 w-full py-3 rounded-xl text-black font-bold transition-transform
+            ${loading ? "bg-yellow-400 opacity-50 cursor-not-allowed" : "bg-gradient-to-r from-yellow-500 to-yellow-300 hover:scale-105"}`}
         >
-          Place Order
+          {loading ? "Placing Order..." : "Place Order"}
         </button>
+
       </div>
     </div>
   );

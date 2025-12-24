@@ -1,16 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-function Navbar() {
+function Navbar({setProducts}) {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
+  const [search,SetSearch]=useState("")
+
+
+  const getProduct=async()=>{
+
+    let res=await fetch(`http://localhost:8000/api/products?search=${search}`)
+
+    let data=await res.json()
+
+    setProducts(data)
+  }
+
+
+  useEffect(()=>{
+    getProduct()
+  })
+
   const menuItems = [
-    { name: "Home", path: "/Home" },
+    { name: "Home", path: "/" },
     { name: "Cart", path: "/cart" },
-    { name: "Products", path: "/" },
-    { name: "Login", path: "/login" },
-    { name: "Signup", path: "/signup" },
+    // { name: "Products", path: "/" },
+    // { name: "Login", path: "/login" },
+    // { name: "Signup", path: "/signup" },
   ];
 
   const handleLogout = () => {
@@ -59,8 +76,11 @@ function Navbar() {
               focus:outline-none focus:ring-2 focus:ring-yellow-300 
               transition-all
             "
+
+            onChange={(e)=>SetSearch(e.target.value)}
           />
-          <span className="absolute right-3 top-2.5 text-white/70 text-lg">🔍</span>
+         
+          <button className="absolute right-3 top-2.5 text-white/70 text-lg">🔍</button>
         </div>
 
         {/* Navigation Links + Logout */}

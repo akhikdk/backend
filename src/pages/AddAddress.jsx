@@ -23,7 +23,7 @@ function AddAddress() {
   // Handle form submit
   const handleSaveAddress = (e) => {
     e.preventDefault();
-    navigate("/home"); // Redirect to home page after saving
+    navigate("/Proceed"); // Redirect to home page after saving
   };
 
   return (

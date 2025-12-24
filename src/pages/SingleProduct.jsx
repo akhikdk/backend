@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import useCartStore from "../CartStore";
 
 const SingleProduct = () => {
   const { id } = useParams();
@@ -7,6 +8,8 @@ const SingleProduct = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const {addItem}=useCartStore()
 
   const fetchProduct = useCallback(async () => {
     setLoading(true);
@@ -53,7 +56,7 @@ const SingleProduct = () => {
     localStorage.setItem("cart", JSON.stringify(cart));
 
     // Navigate to cart page
-    navigate("/cart");
+   
   };
 
   // Loading UI
@@ -98,46 +101,70 @@ const SingleProduct = () => {
 
   const { image, title, description, price, category } = product;
 
-  return (
-    <div className="bg-gray-50 min-h-screen py-10 px-4">
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-10 bg-white p-6 rounded-lg shadow-md">
+return (
+  <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 py-16 px-4">
+    <div className="max-w-6xl mx-auto bg-white/70 backdrop-blur-xl border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 p-8 md:p-12">
+
         {/* Product Image */}
-        <div className="md:w-1/2 flex justify-center items-center">
-          <img src={image} alt={title} className="max-h-[500px] object-contain" />
+        <div className="flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-6">
+          <img
+            src={image}
+            alt={title}
+            className="max-h-[480px] object-contain transition-transform duration-300 hover:scale-105"
+          />
         </div>
 
         {/* Product Details */}
-        <div className="md:w-1/2 flex flex-col gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-          <p className="text-2xl text-blue-600 font-semibold">₹{price}</p>
+        <div className="flex flex-col justify-between">
+          <div className="space-y-5">
+            <span className="inline-block text-sm uppercase tracking-wider text-gray-500">
+              {category?.title || "Uncategorized"}
+            </span>
 
-          <p className="text-gray-500">
-            Category: <span className="font-medium">{category?.title || "No Category"}</span>
-          </p>
+            <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">
+              {title}
+            </h1>
 
-          <p className="text-gray-700 mt-4">{description || "No description available."}</p>
+            <p className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              ₹{price}
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-6">
-            {/* Add to Cart Button */}
+            <p className="text-gray-600 leading-relaxed text-lg">
+              {description || "No description available."}
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <button
-              onClick={handleAddToCart}
-              className="bg-yellow-400 text-black font-semibold px-6 py-3 rounded hover:bg-yellow-500 transition text-center"
+              onClick={() => {
+                addItem({
+                  id: product._id,
+                  title,
+                  description,
+                  price,
+                  image,
+                  qty: 1,
+                });
+                navigate("/cart");
+              }}
+              className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-500 px-8 py-4 text-lg font-semibold text-black shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
             >
-              Add to Cart
+              🛒 Add to Cart
             </button>
 
-            {/* Back to Category */}
             <Link
-              to={`/category/${category?._id || ""}`}
-              className="bg-blue-600 text-white font-semibold px-6 py-3 rounded hover:bg-blue-700 transition text-center"
+              to={`/ProductDetails/${category?._id || ""}`}
+              className="flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-gray-800 hover:scale-[1.02] transition-all duration-300"
             >
-              Back to Category
+              ← Back to Products
             </Link>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+  </div>
+)};
 
 export default SingleProduct;

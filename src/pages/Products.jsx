@@ -8,6 +8,7 @@ function Products() {
   const [message, setMessage] = useState("");
   const token = localStorage.getItem("token");
 
+  // Fetch products
   const fetchProducts = async () => {
     try {
       const res = await fetch("http://localhost:8000/api/products", {
@@ -26,15 +27,14 @@ function Products() {
 
       setProducts(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error fetching products:", error);
       setMessage("Network error fetching products");
       setProducts([]);
     }
   };
 
+  // Delete product
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Delete this product?");
-    if (!confirmDelete) return;
+    if (!window.confirm("Delete this product?")) return;
 
     try {
       const res = await fetch(`http://localhost:8000/api/products/${id}`, {
@@ -48,14 +48,29 @@ function Products() {
 
       if (res.ok) {
         setProducts((prev) => prev.filter((item) => item._id !== id));
-        setMessage(data.message);
+        setMessage(data.message || "Product deleted");
       } else {
-        setMessage(data.message || "Failed to delete product");
+        setMessage(data.message || "Delete failed");
       }
     } catch (error) {
-      console.error("Error deleting product:", error);
-      setMessage("Error deleting product.");
+      setMessage("Error deleting product");
     }
+  };
+
+  // Add to cart
+  const handleAddToCart = (product) => {
+    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    const existing = cart.find((item) => item._id === product._id);
+
+    if (existing) {
+      existing.quantity += 1;
+    } else {
+      cart.push({ ...product, quantity: 1 });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(cart));
+    setMessage("Product added to cart 🛒");
   };
 
   useEffect(() => {
@@ -86,6 +101,7 @@ function Products() {
               price={item.price}
               image={item.image}
               onDelete={handleDelete}
+              onAddToCart={() => handleAddToCart(item)}
             />
           ))
         )}

@@ -16,10 +16,25 @@ function ProductDescriptionTable() {
   });
   const [loading, setLoading] = useState(false);
 
+  // Helper for authenticated fetch
+  const authFetch = async (url, options = {}) => {
+    const token = localStorage.getItem("token"); // your JWT
+    const headers = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...options.headers,
+    };
+    return fetch(url, { ...options, headers });
+  };
+
   // Fetch all products
   const fetchProducts = async () => {
     try {
-      const res = await fetch(API_URL);
+      const res = await authFetch(API_URL);
+      if (res.status === 401) {
+        alert("Unauthorized! Please log in.");
+        return;
+      }
       if (!res.ok) throw new Error("Failed to fetch products");
       const data = await res.json();
       setProducts(data);
@@ -32,7 +47,11 @@ function ProductDescriptionTable() {
   // Fetch all categories
   const fetchCategories = async () => {
     try {
-      const res = await fetch(CATEGORY_API_URL);
+      const res = await authFetch(CATEGORY_API_URL);
+      if (res.status === 401) {
+        alert("Unauthorized! Please log in.");
+        return;
+      }
       if (!res.ok) throw new Error("Failed to fetch categories");
       const data = await res.json();
       setCategories(data);
@@ -59,15 +78,18 @@ function ProductDescriptionTable() {
 
     setLoading(true);
     try {
-      const res = await fetch(API_URL, {
+      const res = await authFetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
+      if (res.status === 401) {
+        alert("Unauthorized! Please log in.");
+        return;
+      }
       if (!res.ok) throw new Error("Failed to add product");
-      const data = await res.json();
 
+      const data = await res.json();
       setProducts((prev) => [...prev, data.product]);
       setForm({
         title: "",
@@ -90,7 +112,11 @@ function ProductDescriptionTable() {
     if (!confirmDelete) return;
 
     try {
-      const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      const res = await authFetch(`${API_URL}/${id}`, { method: "DELETE" });
+      if (res.status === 401) {
+        alert("Unauthorized! Please log in.");
+        return;
+      }
       if (!res.ok) throw new Error("Failed to delete product");
 
       setProducts((prev) => prev.filter((p) => p._id !== id));
@@ -104,6 +130,9 @@ function ProductDescriptionTable() {
     fetchProducts();
     fetchCategories();
   }, []);
+
+  // Map category IDs to titles for display
+  const categoryMap = new Map(categories.map((cat) => [cat._id, cat.title]));
 
   return (
     <div className="w-full min-h-screen bg-gray-100 flex flex-col items-center py-10">
@@ -216,7 +245,7 @@ function ProductDescriptionTable() {
                     {product.title}
                   </td>
                   <td className="px-4 py-3 text-left text-gray-700">
-                    {product?.category?.title?? "N/A"}
+                    {categoryMap.get(product.category) || "N/A"}
                   </td>
                   <td className="px-4 py-3 font-medium text-green-600 text-left">
                     ₹{product.price}

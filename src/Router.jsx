@@ -1,6 +1,5 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Products from "./pages/Products";
 import Login from "./pages/Login";
 import Details from "./pages/Details";
 import Home from "./pages/Home";
@@ -12,15 +11,16 @@ import SingleProduct from "./pages/SingleProduct";
 import Signup from "./pages/signup";
 import AddAddress from "./pages/AddAddress";
 import Cart from "./pages/Cart";
-import ProfileCreation from "./pages/ProfileCreation";
 import Proceed from "./pages/proceed";
+import OrderDetails from "./pages/OrderDetails";
+import Products from "./pages/Products";
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Homepage showing all products */}
-        <Route path="/" element={<Products />} />
+        {/* <Route path="/" element={<Products />} /> */}
 
         {/* Login page */}
         <Route path="/login" element={<Login />} />
@@ -29,7 +29,7 @@ export default function AppRouter() {
         <Route path="/details/:id" element={<Details />} />
 
         {/* Home page */}
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Home />} />
 
         {/* Add product page */}
         <Route path="/addProduct" element={<AddProduct />} />
@@ -38,7 +38,10 @@ export default function AppRouter() {
         <Route path="/category" element={<Category />} />
 
         {/* Product description table */}
-        <Route path="/ProductDescriptionTable" element={<ProductDescriptionTable />} />
+        <Route
+          path="/ProductDescriptionTable"
+          element={<ProductDescriptionTable />}
+        />
 
         {/* Products by category */}
         <Route path="/productdetails/:id" element={<ProductDetails />} />
@@ -46,12 +49,20 @@ export default function AppRouter() {
         {/* Single product page */}
         <Route path="/singleproduct/:id" element={<SingleProduct />} />
 
-        <Route path="/Signup" element={<Signup/>}/>
+        {/* {Signup} */}
+        <Route path="/Signup" element={<Signup />} />
+        {/* {AddAddress} */}
+        <Route path="/AddAddress" element={<AddAddress />} />
 
-        <Route path="/AddAddress" element={<AddAddress/>}/>
-        <Route path="/Cart" element={<Cart/>}/>
-        <Route path="/ProfileCreation" element={<ProfileCreation/>}/>
-        <Route path="/Proceed"element={<Proceed/>}/>
+        {/* {Cart} */}
+        <Route path="/Cart" element={<Cart />} />
+
+         {/* {Proceed} */}
+        <Route path="/Proceed" element={<Proceed />} />
+
+          {/* {OrderDetails} */}
+        <Route path="/OrderDetails" element={<OrderDetails />} />
+        <Route path="/products" element = {<Products/>}/>
       </Routes>
     </BrowserRouter>
   );

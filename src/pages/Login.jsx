@@ -30,7 +30,7 @@ function Login() {
       if (data.token) localStorage.setItem('token', data.token);
 
       setMessage('Login successful! Redirecting...');
-      setTimeout(() => navigate('/Home'), 800);
+      setTimeout(() => navigate('/'), 800);
 
     } catch (error) {
       console.error('Network error:', error);

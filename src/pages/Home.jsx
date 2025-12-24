@@ -12,57 +12,104 @@ function Home() {
 
   const token = localStorage.getItem("token");
 
-  useEffect(() => {
-    const abortController = new AbortController();
+  // useEffect(() => {
+  //   const abortController = new AbortController();
 
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch("http://localhost:8000/api/category", {
-          signal: abortController.signal,
-        });
-        if (!res.ok) throw new Error("Failed to fetch categories");
-        const data = await res.json();
-        setCategories(data);
-      } catch (err) {
-        if (!abortController.signal.aborted)
-          setCatError("Failed to load categories");
-        console.error(err);
-      } finally {
-        setCatLoading(false);
-      }
-    };
+  //   const fetchData = async (
+  //     url,
+  //     setData,
+  //     setError,
+  //     setLoading,
+  //     headers = {}
+  //   ) => {
+  //     setLoading(true);
+  //     try {
+  //       const res = await fetch(url, {
+  //         signal: abortController.signal,
+  //         headers,
+  //       });
+  //       if (!res.ok) throw new Error("Failed to fetch data");
+  //       const data = await res.json();
+  //       setData(data);
+  //     } catch (err) {
+  //       if (err.name === "AbortError") {
+  //         console.log("Fetch aborted:", url);
+  //       } else {
+  //         setError(err.message);
+  //         console.error(err);
+  //       }
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch("http://localhost:8000/api/products", {
-          signal: abortController.signal,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const data = await res.json();
-        setProducts(data);
-      } catch (err) {
-        if (!abortController.signal.aborted)
-          setProdError("Failed to load products");
-        console.error(err);
-      } finally {
-        setProdLoading(false);
-      }
-    };
+  //   fetchData(
+  //     "http://localhost:8000/api/category",
+  //     setCategories,
+  //     setCatError,
+  //     setCatLoading
+  //   );
+  //   fetchData(
+  //     "http://localhost:8000/api/products",
+  //     setProducts,
+  //     setProdError,
+  //     setProdLoading,
+  //     { Authorization: `Bearer ${token}` }
+  //   );
 
-    fetchCategories();
-    fetchProducts();
+  //   return () => abortController.abort();
+  // }, [token]);
 
-    return () => abortController.abort();
-  }, [token]);
+  const getCategory = async () =>{
+    try{
+
+      const res = await fetch("http://localhost:8000/api/category")
+      const data = await res.json();
+      setCategories(data);
+    }catch(err){
+        console.log(err)
+    }finally{
+      setCatLoading(false)
+    }
+  }
+
+ const getProduct = async () => {
+  try {
+    
+    const res = await fetch("http://localhost:8000/api/products", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch products. Status: ${res.status}`);
+    }
+
+    const data = await res.json();
+    setProducts(data);
+  } catch (err) {
+    console.error(err);
+    setProdError(err.message);
+  } finally {
+    setProdLoading(false);
+  }
+};
+
+
+  useEffect(()=>{
+    
+    getProduct();
+    getCategory();
+
+  },[])
 
   if (!token) return <Navigate to="/login" />;
 
   return (
     <div className="w-full min-h-screen flex flex-col font-sans bg-gradient-to-b from-gray-100 via-white to-gray-50">
-      <Navbar />
+      <Navbar setProducts={setProducts}/>
 
       <div className="mt-20">
         {/* HERO SECTION */}
@@ -78,7 +125,7 @@ function Home() {
               Discover high-quality products and exclusive deals — all in one
               place!
             </p>
-            <Link to="/products">
+            <Link to="/Products">
               <button className="mt-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold px-9 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-2 hover:scale-105 animate-fadeIn delay-400">
                 🛍️ Shop Now
               </button>
@@ -90,6 +137,7 @@ function Home() {
               src="https://cdn-icons-png.flaticon.com/512/3081/3081559.png"
               alt="Shopping illustration"
               className="w-64 sm:w-72 md:w-96 transform hover:scale-110 transition-transform duration-1000 animate-float"
+              loading="lazy"
             />
             <div className="absolute -bottom-16 -right-10 w-40 h-40 sm:w-56 sm:h-56 bg-purple-300 rounded-full opacity-30 blur-3xl animate-blob"></div>
             <div className="absolute -top-20 -left-14 w-52 h-52 sm:w-64 sm:h-64 bg-pink-300 rounded-full opacity-20 blur-3xl animate-blob animation-delay-2000"></div>
@@ -115,11 +163,13 @@ function Home() {
                   key={cat._id}
                   to={`/ProductDetails/${cat._id}`}
                   className="flex flex-col items-center p-4 rounded-2xl hover:scale-105 transition-transform duration-300"
+                  aria-label={`View ${cat.title} category`}
                 >
                   <img
                     src={cat.image}
                     alt={cat.title}
                     className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-full mb-3 border-4"
+                    loading="lazy"
                   />
                   <h4 className="text-sm sm:text-md font-semibold text-gray-900 text-center">
                     {cat.title}
@@ -154,6 +204,7 @@ function Home() {
                       src={item.image}
                       alt={item.title}
                       className="w-full h-56 sm:h-64 object-cover group-hover:scale-110 transition-transform duration-700"
+                      loading="lazy"
                     />
                   </Link>
 
@@ -172,8 +223,11 @@ function Home() {
                     </p>
 
                     <Link to={`/singleproduct/${item._id}`}>
-                      <button className="w-full mt-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all">
-                        View
+                      <button
+                        className="w-full mt-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all"
+                        aria-label={`Add ${item.title} to cart`}
+                      >
+                        Add to cart
                       </button>
                     </Link>
                   </div>

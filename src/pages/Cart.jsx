@@ -1,34 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import useCartStore from "../CartStore";
 
 function Cart() {
-  const [cartItems, setCartItems] = useState([]);
+  // const [cartItems, setCartItems] = useState([]);
+
+  
   const navigate = useNavigate();
+  const {cartItems,removeItem, clearCart}=useCartStore()
+console.log("cart",cartItems)
 
-  useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCartItems(storedCart);
-  }, []);
 
-  const handleRemove = (id) => {
-    const updatedCart = cartItems.filter((item) => item.id !== id);
-    setCartItems(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-  };
+
 
   const calculateTotals = () => {
-    const subtotal = cartItems.reduce((sum, item) => sum + Number(item.price) * (item.quantity || 1), 0);
+    const subtotal = cartItems.reduce((sum, item) => sum + Number(item.price) * (item.qty || 1), 0);
     const gst = +(subtotal * 0.18).toFixed(2);
     const deliveryFee = cartItems.length > 0 ? 50 : 0;
     const total = subtotal + gst + deliveryFee;
     return { subtotal, gst, deliveryFee, total };
   };
 
+
   const handleProceed = () => {
-    // Store order summary in localStorage for Proceed page
+
     const totals = calculateTotals();
-    localStorage.setItem("orderSummary", JSON.stringify({ items: cartItems, ...totals }));
-    navigate("/proceed");
+    
+    navigate("/AddAddress");
   };
 
   const { subtotal, gst, deliveryFee, total } = calculateTotals();
@@ -58,19 +56,19 @@ function Cart() {
                   <h3 className="text-xl font-bold text-gray-100 text-center mb-2">{item.title}</h3>
                   <p className="text-gray-300 mb-2">Category: {item.category?.title || "N/A"}</p>
                   <p className="text-yellow-400 font-semibold mb-2">
-                    ₹{item.price} x {item.quantity || 1}
+                    ₹{item.price} x {item.qty || 1}
                   </p>
                 </div>
                 <div className="text-gray-300 text-sm mb-4">
-                  <p>Subtotal: ₹{Number(item.price) * (item.quantity || 1)}</p>
+                  <p>Subtotal: ₹{Number(item.price) * (item.qty || 1)}</p>
                   <p>GST (18%): ₹{(+item.price * 0.18).toFixed(2)}</p>
                   <p>Delivery Fee: ₹{cartItems.length > 0 ? 50 : 0}</p>
                   <p className="text-yellow-400 font-bold text-lg mt-2">
-                    Total: ₹{Number(item.price) * (item.quantity || 1) + (+item.price * 0.18) + (cartItems.length > 0 ? 50 : 0)}
+                    Total: ₹{Number(item.price) * (item.qty || 1) + (+item.price * 0.18) + (cartItems.length > 0 ? 50 : 0)}
                   </p>
                 </div>
                 <button
-                  onClick={() => handleRemove(item.id)}
+                  onClick={() => removeItem(item.id)}
                   className="w-full py-2 rounded-xl bg-red-500 hover:bg-red-600 text-white font-semibold shadow-lg"
                 >
                   Remove
